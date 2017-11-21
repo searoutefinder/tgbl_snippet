@@ -1,0 +1,54 @@
+	body{
+		margin:0;
+		padding:0;
+		height:100%;
+		width:100%;
+	}
+	.sb_seller_container{
+		display: block;
+		text-align:center;
+		border-bottom:1px solid #BBB;
+	}
+	.sb_seller{
+		padding:10px;
+		display: block;
+		width:100%;
+		color:#333;
+		text-decoration:none;
+	}
+
+        /*EZ Mapbox Autocomplete*/
+
+        .ez-mapbox-autocomplete{
+            width: 100%;
+            z-index: 9999;
+            position:absolute;
+        }
+        .ez-mapbox-autocomplete .ez-mapbox-autocomplete-list{
+            list-style: none;
+            margin: 35px 0px 0px 0px;
+            padding: 0;
+            background:#FFFFFF;
+            width:100%;
+            border-radius:4px;
+        }
+        .ez-mapbox-autocomplete .ez-mapbox-autocomplete-holder{
+            width: 100%;
+            padding: 5px;
+            line-height: 15px;
+            cursor:pointer;
+        }
+        .ez-mapbox-autocomplete .ez-mapbox-autocomplete-holder:hover{
+            background:#CCC;
+        }
+        .ez-mapbox-autocomplete .ez-mapbox-autocomplete-item{
+            padding:5px;
+            display:block;
+            width:100%;
+        }
+        .ez-mapbox-autocomplete-noresult{
+            font-style:italic;
+        }
+        .ez-mapbox-autocomplete .ez-mapbox-autocomplete-item i, .ez-mapbox-autocomplete .ez-mapbox-autocomplete-noresult i{
+            margin-right:5px;
+        }
