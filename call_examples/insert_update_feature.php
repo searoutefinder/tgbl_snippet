@@ -2,9 +2,9 @@
 
 $curl = curl_init();
 
-$user = "rperry";
-$dataset = "cj9ebj0o4114d32o78msvxynv";
-$accessToken = "sk.eyJ1IjoicnBlcnJ5IiwiYSI6ImNqYWUyN3U5aTFyYnAzM3IxdnIyaWE2eTEifQ.f9MMdw138ZVqirYZDJBVwQ";
+$user = "";
+$dataset = "";
+$accessToken = "";
 $featureID = "your-magento-record-ID";
 
 curl_setopt_array($curl, array(
