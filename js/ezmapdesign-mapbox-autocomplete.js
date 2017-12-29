@@ -8,10 +8,11 @@
 						"endpoint" : "https://api.tiles.mapbox.com",
 						"source" : "mapbox.places",
 						"accessToken" : "pk.eyJ1IjoibG9laXpib3VyZGljIiwiYSI6ImNpd3cwcm9tdzAwa2kyeW1nbXYyZmN6Z3AifQ.RbguYDUc8vbF8T5U8JnzcQ",
-						"proximity" : "",
-						"bbox": "",
 						"latest": null,						
-						"types": ["place"]		
+						"types": ["address","locality","postcode"],
+						"language": "en",
+						"country": "gb",
+						"bbox": "-10.8544921875,49.82380908513249,2.021484375,59.478568831926395"		
 					};
 					var _opts = $.extend({}, _defaults, options);
 
@@ -20,11 +21,11 @@
 
 					_autocompleteContainer.append(_autocompleteList);
 					
-					function ezsearch(endpoint, source, types, accessToken, proximity, bbox, query, callback){
+					function ezsearch(endpoint, source, types, accessToken, proximity, bbox, language, query, callback){
 						var searchTime = new Date();
-						var uri = endpoint + '/geocoding/v5/' + source + '/' + encodeURIComponent(query) + '.json' + '?' + ((types.length>0) ? '&types=' + types.join(",") : '') +'&access_token=' + accessToken + (proximity ? '&proximity=' + proximity : '') + (bbox ? '&bbox=' + bbox : '');
+						var uri = endpoint + '/geocoding/v5/' + source + '/' + encodeURIComponent(query) + '.json' + '?' + ((types.length>0) ? '&types=' + types.join(",") : '') +'&access_token=' + accessToken + (proximity ? '&proximity=' + proximity : '') + (bbox ? '&bbox=' + bbox : '') + (language ? '&language=' + language : '');
+						console.log(uri);
 						$.get(uri, function(res, err, body){
-							//console.log([res, err, body, searchTime]);
 							callback(res, err, body, searchTime);		
 						});					
 					}					
@@ -39,24 +40,34 @@
 						if(res.features.length > 0){
 							for(i=0;i<res.features.length;i++){
 								var feature = res["features"][i];
-								var city, postcode, country, shortcode, place = "";
+								var item = {
+									'city': '',
+									'postcode': '',
+									'country': '',
+									'shortcode': '',
+									'address': '',
+									'place': ''
+								};
 
-								if(feature["id"].indexOf("place") > -1){
-									place = feature["place_name"];
+								if( (feature["place_type"].indexOf("postcode") > -1) || (feature["place_type"].indexOf("place") > -1) || (feature["place_type"].indexOf("locality") > -1) || (feature["place_type"].indexOf("address") > -1) ){
+									item.address = feature["place_name"];
 								}
 
 								for(j=0;j<feature.context.length;j++){
 									if(feature.context[j]["id"].indexOf("country") > -1){
-										country = feature.context[j]["text"];
-										shortcode = feature.context[j]["short_code"];
-										if(_opts.hasOwnProperty("fromCountry")){
-											if(shortcode != _opts.fromCountry.iso.toLowerCase()){return false;}
-										}										
+										item.country = feature.context[j]["text"];
+										item.shortcode = feature.context[j]["short_code"];										
+									}							
+									
+									if(feature.context[j]["id"].indexOf("locality") > -1){
+										item.city = feature.context[j]["text"];
 									}
-									else if(feature.context[j]["id"].indexOf("region") > -1){
-										city = feature.context[j]["text"];
-									}
-								}				
+									if(feature.context[j]["id"].indexOf("postcode") > -1){
+										item.postcode = feature.context[j]["text"];
+									}									
+								}
+								console.log(item);
+								/*				
 								if(feature["id"].indexOf("place") > -1){
 									if(place.length > 60){
 										var placestring = place.substring(0, 55) + "...";
@@ -65,14 +76,15 @@
 									{
 										var placestring = place;
 									}
-
-									var $li = $("<li class='ez-mapbox-autocomplete-holder'><a href='#' title='" + place + "' class='ez-mapbox-autocomplete-item' data-location='" + [feature.text, country, shortcode ].join(";") + "' data-latlng='"+ feature.center.join(",") + "'><span><i class='fa fa-map-marker' aria-hidden='true'></i></span>" + [feature.text, country].join(", ") + "</a></li>");
+*/
+									var $li = $("<li class='ez-mapbox-autocomplete-holder'><a href='#' title='" + item.address + "' class='ez-mapbox-autocomplete-item' data-location='" + [item.address, item.country].join(";") + "' data-latlng='"+ feature.center.join(",") + "'><span><i class='fa fa-map-marker' aria-hidden='true'></i></span>" + item.address + "</a></li>");
 									$li.find("a").on("click", function(e){
 										e.preventDefault();
 										select_and_transfer_geodata($(this));
 									});
 									$li.appendTo(_autocompleteList);
-								}	
+								/*}
+								*/	
 							}
 						}
 						else
@@ -128,7 +140,7 @@
 							return false;
 						}
 						$('.ez-mapbox-autocomplete-list').fadeIn();
-						ezsearch(_opts.endpoint, _opts.source, _opts.types, _opts.accessToken, _opts.proximity, _opts.bbox, $(this).val(), handleResponse);
+						ezsearch(_opts.endpoint, _opts.source, _opts.types, _opts.accessToken, _opts.proximity, _opts.bbox, _opts.language, $(this).val(), handleResponse);
 					});
 
 					return this;
