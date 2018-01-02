@@ -18,36 +18,34 @@ L.mapbox.accessToken = 'pk.eyJ1IjoicnBlcnJ5IiwiYSI6ImNpemUzaXhwcDAwNW4ycWt5YWRie
 		function createSidebarEntry(feature){
 			var div = $("<div class='sb_seller_container'>");
 			div.append($('<a href="#" class="sb_seller" data-id="' + feature.id + '">' + feature.properties.seller + '</a>'));
+			div.find('a').on('click', function(e){
+				e.preventDefault();
+				var ID = $(this).attr('data-id');
+				tgblLayer.eachLayer(function(l){						
+					if(l.feature.id == ID){
+						console.log([l.feature.id, ID]);
+						map.setView(l.getLatLng(), 15);
+						l.fireEvent('click');
+					}
+				});
+			});			
 			return div;
 		}
 		function radiusReset(){
 			tgblLayer.setFilter(function(larder){
-				var item = createSidebarEntry(larder);
-				$("#sidebar").append(item); 
 				return true;
 			});
 		}
 		function radiusSearch(lat, lng, radius){
 			$("#sidebar").html("");
-			var bounds = L.latLngBounds();
+
 			tgblLayer.setFilter(function(larder){
-            	if (turf.distance(turf.point(larder.geometry.coordinates), turf.point([parseFloat(lng), parseFloat(lat)]), 'miles') <= parseInt(radius)){
-            		bounds.extend([parseFloat(lng), parseFloat(lat)]);
-            		var item = createSidebarEntry(larder);
-					item.find('a').on('click', function(e){
-						e.preventDefault();
-						var ID = $(this).attr('data-id');
-						tgblLayer.eachLayer(function(l){						
-							if(l.feature.id == ID){
-								console.log([l.feature.id, ID]);
-								map.setView(l.getLatLng(), 15);
-								l.fireEvent('click');
-							}
-						});
-					});
-
-					$("#sidebar").append(item);  
-
+				var distance = turf.distance(
+					turf.point(larder.geometry.coordinates), 
+					turf.point([parseFloat(lng), parseFloat(lat)]),
+					{"units": "miles"}
+					);
+            	if ( distance <= parseInt(radius) ){
             		return true;
             	}
             	return false;	
@@ -67,15 +65,24 @@ L.mapbox.accessToken = 'pk.eyJ1IjoicnBlcnJ5IiwiYSI6ImNpemUzaXhwcDAwNW4ycWt5YWRie
 				}
 			);
 			autocomplete.on("place_changed", function(e, data){
-
-				console.log(data);
 				map.setView([data.lat, data.lng], 12);
 				$("#location").attr("data-lat", data.lat);
 				$("#location").attr("data-lng", data.lng);		
 
 			}); 
+			var simplestyle = {"marker-size": "small", "marker-color": "#FF0000", "marker-symbol": "attraction"};
 
+			for(i=0;i<vendors.features.length;i++){
+				vendors.features[i].properties.icon = {
+              		"iconUrl": "accomodation_marker.svg",
+              		"iconSize": [32, 32], // size of the icon
+              		"iconAnchor": [16, 32], // point of the icon which will correspond to marker's location
+              		"popupAnchor": [16, -25], // point from which the popup should open relative to the iconAnchor
+              		"className": "dot"
+          		}				
+			}
 			
+			console.log(vendors.features);
 			
 			tgblLayer.on('layeradd', function(e){
 				var marker = e.layer;
@@ -87,17 +94,12 @@ L.mapbox.accessToken = 'pk.eyJ1IjoicnBlcnJ5IiwiYSI6ImNpemUzaXhwcDAwNW4ycWt5YWRie
 					popup.openOn(map);					
 				});	
 
+		        var feature = marker.feature;
+
+    			marker.setIcon(L.icon(feature.properties.icon));
+
 				var item = createSidebarEntry(marker.feature);
-				item.find('a').on('click', function(e){
-					e.preventDefault();
-					var ID = $(this).attr('data-id');
-					tgblLayer.eachLayer(function(l){						
-						if(l.feature.id == ID){
-							map.setView(l.getLatLng(), 15);
-							l.fireEvent('click');
-						}
-					});
-				});
+
 				$("#sidebar").append(item);
 			});
 
